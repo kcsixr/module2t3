@@ -3,10 +3,25 @@ pipeline {
 
     environment {
         BRANCH_NAME = "${env.GIT_BRANCH}"
-        APP_PORT = (BRANCH_NAME == 'main') ? '3000' : '3001'
     }
 
     stages {
+	
+	stage('Set Environment Variables') {
+            steps {
+                script {
+                    if (env.BRANCH_NAME == 'main') {
+                        env.APP_PORT = '3000'
+                        env.DOCKER_IMAGE = 'nodemain:v1.0'
+                    } else {
+                        env.APP_PORT = '3001'
+                        env.DOCKER_IMAGE = 'nodedev:v1.0'
+                    }
+                }
+            }
+        }
+
+
         stage('Checkout') {
             steps {
                 git branch: "${env.BRANCH_NAME}", url: 'https://github.com/kcsixr/module2t3.git'
