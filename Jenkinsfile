@@ -44,9 +44,9 @@ pipeline {
             steps {
                 script {
                     if (env.BRANCH_NAME == 'main') {
-                        sh 'cp assets/main_logo.svg public/logo.svg'
+                        sh 'cp src/main.svg public/logo.svg'
                     } else {
-                        sh 'cp assets/dev_logo.svg public/logo.svg'
+                        sh 'cp src/dev.svg public/logo.svg'
                     }
                     sh "sed -i 's/PORT=.*/PORT=${APP_PORT}/g' .env"
                 }
