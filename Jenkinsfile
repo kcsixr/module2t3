@@ -48,7 +48,7 @@ pipeline {
                     } else {
                         sh 'cp src/dev.svg public/logo.svg'
                     }
-                    sh "sed -i 's/PORT=.*/PORT=${APP_PORT}/g' .env"
+                    sh "echo 'PORT=${APP_PORT}' > .env"
                 }
             }
         }
