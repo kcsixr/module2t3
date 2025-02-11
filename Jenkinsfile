@@ -55,7 +55,7 @@ pipeline {
 
         stage('Build Docker Image') {
             steps {
-                sh "sudo docker build -t myapp:${BRANCH_NAME} ."
+                sh "docker build -t myapp:${BRANCH_NAME} ."
             }
         }
 
