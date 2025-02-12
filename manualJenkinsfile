@@ -1,0 +1,29 @@
+pipeline {
+    agent any
+
+    parameters {
+        choice(name: 'ENVIRONMENT', choices: ['main', 'dev'], description: 'Choose deployment environment')
+        string(name: 'IMAGE_TAG', defaultValue: 'latest', description: 'Choose image tag for deployment')
+    }
+
+    stages {
+        stage('Deploy') {
+            steps {
+                script {
+                    def containerName = (params.ENVIRONMENT == 'main') ? 'nodemain' : 'nodedev'
+                    def portMapping  = (params.ENVIRONMENT == 'main') ? '3000:3000' : '3001:3000'
+                    def imageName    = (params.ENVIRONMENT == 'main') ? "nodemain:${params.IMAGE_TAG}" : "nodedev:${params.IMAGE_TAG}"
+
+                    echo "Deploying ${containerName} with image ${imageName}"
+
+                    // Remove old container if exists
+                    sh "docker stop ${containerName} || true"
+                    sh "docker rm ${containerName} || true"
+
+                    // Run new container
+                    sh "docker run -d --name ${containerName} --rm -p ${portMapping} ${imageName}"
+                }
+            }
+        }
+    }
+}
