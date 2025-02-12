@@ -1,30 +1,14 @@
 pipeline {
     agent any
 
-    environment {
-        BRANCH_NAME = "${env.GIT_BRANCH}"
-    }
-
     stages {
-	
-	stage('Set Environment Variables') {
-            steps {
-                script {
-                    if (env.BRANCH_NAME == 'main') {
-                        env.APP_PORT = '3000'
-                        env.DOCKER_IMAGE = 'nodemain:v1.0'
-                    } else {
-                        env.APP_PORT = '3001'
-                        env.DOCKER_IMAGE = 'nodedev:v1.0'
-                    }
-                }
-            }
-        }
-
 
         stage('Checkout') {
             steps {
-                git branch: "${env.BRANCH_NAME}", url: 'https://github.com/kcsixr/module2t3.git'
+                checkout scm
+                script {
+                    echo "Current Branch: ${env.BRANCH_NAME}"
+                }
             }
         }
 
@@ -40,28 +24,33 @@ pipeline {
             }
         }
 
-        stage('Modify Logo & Ports') {
+        stage('Build Docker Image') {
             steps {
                 script {
                     if (env.BRANCH_NAME == 'main') {
+                        echo "Building for main branch"
                         sh 'cp src/main.svg public/logo.svg'
+                        sh 'docker build -t nodemain:v1.0 .'
                     } else {
+                        echo "Building for ${env.BRANCH_NAME} branch"
                         sh 'cp src/dev.svg public/logo.svg'
+                        sh 'docker build -t nodedev:v1.0 .'
                     }
-                    sh "echo 'PORT=${APP_PORT}' > .env"
                 }
-            }
-        }
-
-        stage('Build Docker Image') {
-            steps {
-                sh "docker build -t myapp:${BRANCH_NAME} ."
             }
         }
 
         stage('Deploy') {
             steps {
-                sh "docker run -d -p ${APP_PORT}:${APP_PORT} --name myapp_${BRANCH_NAME} myapp:${BRANCH_NAME}"
+                script {
+                    if (env.BRANCH_NAME == 'main') {
+                        echo "Deploying main branch"
+                        sh 'docker run -d --name nodemain --rm -p 3000:3000 nodemain:v1.0'
+                    } else {
+                        echo "Deploying ${env.BRANCH_NAME} branch"
+                        sh 'docker run -d --name nodedev --rm -p 3001:3000 nodedev:v1.0'
+                    }
+                }
             }
         }
     }
