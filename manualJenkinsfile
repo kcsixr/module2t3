@@ -2,26 +2,59 @@ pipeline {
     agent any
 
     parameters {
-        choice(name: 'ENVIRONMENT', choices: ['main', 'dev'], description: 'Choose deployment environment')
-        string(name: 'IMAGE_TAG', defaultValue: 'latest', description: 'Choose image tag for deployment')
+        choice(name: 'BRANCH_NAME', choices: ['main', 'dev'], description: 'Choose deployment environment')
+        string(name: 'IMAGE_TAG', defaultValue: 'v1.0', description: 'Choose image tag for deployment')
     }
 
     stages {
+
+        stage('Checkout') {
+            steps {
+                checkout scm
+                script {
+                    echo "Current Branch: ${env.BRANCH_NAME}"
+                }
+            }
+        }
+
+        stage('Build') {
+            steps {
+                sh 'npm install'
+            }
+        }
+
+        stage('Test') {
+            steps {
+                sh 'npm test'
+            }
+        }
+
+        stage('Build Docker Image') {
+            steps {
+                script {
+                    if (env.BRANCH_NAME == 'main') {
+                        echo "Building for main branch"
+                        sh 'cp src/main.svg public/logo.svg'
+                        sh 'docker build -t nodemain:${env.IMAGE_TAG} .'
+                    } else {
+                        echo "Building for ${env.BRANCH_NAME} branch"
+                        sh 'cp src/dev.svg public/logo.svg'
+                        sh 'docker build -t nodedev:${env.IMAGE_TAG} .'
+                    }
+                }
+            }
+        }
+
         stage('Deploy') {
             steps {
                 script {
-                    def containerName = (params.ENVIRONMENT == 'main') ? 'nodemain' : 'nodedev'
-                    def portMapping  = (params.ENVIRONMENT == 'main') ? '3000:3000' : '3001:3000'
-                    def imageName    = (params.ENVIRONMENT == 'main') ? "nodemain:${params.IMAGE_TAG}" : "nodedev:${params.IMAGE_TAG}"
-
-                    echo "Deploying ${containerName} with image ${imageName}"
-
-                    // Remove old container if exists
-                    sh "docker stop ${containerName} || true"
-                    sh "docker rm ${containerName} || true"
-
-                    // Run new container
-                    sh "docker run -d --name ${containerName} --rm -p ${portMapping} ${imageName}"
+                    if (env.BRANCH_NAME == 'main') {
+                        echo "Deploying main branch"
+                        sh 'docker run -d --name nodemain --rm -p 3000:3000 nodemain:${env.IMAGE_TAG}'
+                    } else {
+                        echo "Deploying ${env.BRANCH_NAME} branch"
+                        sh 'docker run -d --name nodedev --rm -p 3001:3000 nodedev:${env.IMAGE_TAG}'
+                    }
                 }
             }
         }
