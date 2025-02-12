@@ -33,11 +33,11 @@ pipeline {
                 script {
                     if (params.ENVIRONMENT == 'main') {
                         echo "Building for main environment"
-                        sh 'cp src/main.svg public/logo.svg'
+                     # //  sh 'cp src/main.svg public/logo.svg'
                         sh "docker build -t nodemain:${params.IMAGE_TAG} ."
                     } else {
                         echo "Building for dev environment"
-                        sh 'cp src/dev.svg public/logo.svg'
+                     #//   sh 'cp src/dev.svg public/logo.svg'
                         sh "docker build -t nodedev:${params.IMAGE_TAG} ."
                     }
                 }
