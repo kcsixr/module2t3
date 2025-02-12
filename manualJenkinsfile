@@ -29,21 +29,23 @@ pipeline {
             }
         }
 
-        stage('Build Docker Image') {
-            steps {
-                script {
-                    if (env.BRANCH_NAME == 'main') {
-                        echo "Building for main branch"
-                        sh 'cp src/main.svg public/logo.svg'
-                        sh 'docker build -t nodemain:${env.IMAGE_TAG} .'
-                    } else {
-                        echo "Building for ${env.BRANCH_NAME} branch"
-                        sh 'cp src/dev.svg public/logo.svg'
-                        sh 'docker build -t nodedev:${env.IMAGE_TAG} .'
-                    }
-                }
-            }
-        }
+	stage('Build Docker Image') {
+	    steps {
+		script {
+		    if (env.BRANCH_NAME == 'main') {
+			echo "Building for main branch"
+			sh 'cp src/main.svg public/logo.svg'
+			sh "docker build -t nodemain:${env.IMAGE_TAG} ."
+		    } else {
+			echo "Building for ${env.BRANCH_NAME} branch"
+			sh 'cp src/dev.svg public/logo.svg'
+			sh "docker build -t nodedev:${env.IMAGE_TAG} ."
+		    }
+		}
+	    }
+	}
+
+
 
         stage('Deploy') {
             steps {
