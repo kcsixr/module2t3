@@ -2,12 +2,11 @@ pipeline {
     agent any
 
     parameters {
-        choice(name: 'BRANCH_NAME', choices: ['main', 'dev'], description: 'Choose deployment environment')
-        string(name: 'IMAGE_TAG', defaultValue: 'v1.0', description: 'Choose image tag for deployment')
+        choice(name: 'ENVIRONMENT', choices: ['main', 'dev'], description: 'Select the target environment (main or dev)')
+        string(name: 'IMAGE_TAG', defaultValue: 'v1.0', description: 'Specify the tag of the Docker image to be deployed')
     }
 
     stages {
-
         stage('Checkout') {
             steps {
                 checkout scm
@@ -29,33 +28,31 @@ pipeline {
             }
         }
 
-	stage('Build Docker Image') {
-	    steps {
-		script {
-		    if (env.BRANCH_NAME == 'main') {
-			echo "Building for main branch"
-			sh 'cp src/main.svg public/logo.svg'
-			sh "docker build -t nodemain:${env.IMAGE_TAG} ."
-		    } else {
-			echo "Building for ${env.BRANCH_NAME} branch"
-			sh 'cp src/dev.svg public/logo.svg'
-			sh "docker build -t nodedev:${env.IMAGE_TAG} ."
-		    }
-		}
-	    }
-	}
-
-
+        stage('Build Docker Image') {
+            steps {
+                script {
+                    if (params.ENVIRONMENT == 'main') {
+                        echo "Building for main environment"
+                        sh 'cp src/main.svg public/logo.svg'
+                        sh "docker build -t nodemain:${params.IMAGE_TAG} ."
+                    } else {
+                        echo "Building for dev environment"
+                        sh 'cp src/dev.svg public/logo.svg'
+                        sh "docker build -t nodedev:${params.IMAGE_TAG} ."
+                    }
+                }
+            }
+        }
 
         stage('Deploy') {
             steps {
                 script {
-                    if (env.BRANCH_NAME == 'main') {
-                        echo "Deploying main branch"
-                        sh 'docker run -d --name nodemain --rm -p 3000:3000 nodemain:${env.IMAGE_TAG}'
+                    if (params.ENVIRONMENT == 'main') {
+                        echo "Deploying to main environment"
+                        sh "docker run -d --name nodemain --rm -p 3000:3000 nodemain:${params.IMAGE_TAG}"
                     } else {
-                        echo "Deploying ${env.BRANCH_NAME} branch"
-                        sh 'docker run -d --name nodedev --rm -p 3001:3000 nodedev:${env.IMAGE_TAG}'
+                        echo "Deploying to dev environment"
+                        sh "docker run -d --name nodedev --rm -p 3001:3000 nodedev:${params.IMAGE_TAG}"
                     }
                 }
             }
