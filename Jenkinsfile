@@ -29,11 +29,9 @@ pipeline {
                 script {
                     if (env.BRANCH_NAME == 'main') {
                         echo "Building for main branch"
-                        sh 'cp src/main.svg public/logo.svg'
                         sh 'docker build -t nodemain:v1.0 .'
                     } else {
                         echo "Building for ${env.BRANCH_NAME} branch"
-                        sh 'cp src/dev.svg public/logo.svg'
                         sh 'docker build -t nodedev:v1.0 .'
                     }
                 }
