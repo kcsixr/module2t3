@@ -37,7 +37,7 @@ pipeline {
                         sh "docker build -t ${env.DOCKER_HUB_REPO}/nodemain:${env.IMAGE_VERSION} ."
                     } else {
                         echo "Building for ${env.BRANCH_NAME} branch"
-                        sh "'docker build -t ${env.DOCKER_HUB_REPO}/nodedev:${env.IMAGE_VERSION} ."
+                        sh "docker build -t ${env.DOCKER_HUB_REPO}/nodedev:${env.IMAGE_VERSION} ."
                     }
                 }
             }
