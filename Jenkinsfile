@@ -65,8 +65,11 @@ pipeline {
         stage('Push Docker Image') {
             steps {
                 script {
-                    withCredentials([usernamePassword(credentialsId: 'd9b0b467-5dde-4656-a824-0711ac8ec427', usernameVariable: 'DOCKER_HUB_USER', passwordVariable: 'DOCKER_HUB_PASSWORD')]) {
-                        sh "echo ${DOCKER_HUB_PASSWORD} | docker login -u ${DOCKER_HUB_USER} --password-stdin"
+                    withCredentials([usernamePassword(credentialsId: 'docker-hub-creds', usernameVariable: 'DOCKER_HUB_USER', passwordVariable: 'DOCKER_HUB_PASSWORD')]) {
+                        // Используем переменные, созданные withCredentials
+                        sh '''
+                            echo $DOCKER_HUB_PASSWORD | docker login -u $DOCKER_HUB_USER --password-stdin
+                        '''
                         if (env.BRANCH_NAME == 'main') {
                             sh "docker push ${env.DOCKER_HUB_REPO}/nodemain:${env.IMAGE_VERSION}"
                         } else {
