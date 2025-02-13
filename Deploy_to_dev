@@ -13,7 +13,7 @@ pipeline {
                     withCredentials([usernamePassword(credentialsId: 'docker-hub-creds', usernameVariable: 'DOCKER_HUB_USER', passwordVariable: 'DOCKER_HUB_PASSWORD')]) {
                         sh '''
                             echo $DOCKER_HUB_PASSWORD | docker login -u $DOCKER_HUB_USER --password-stdin
-                            docker pull $DOCKER_HUB_REPO/nodemain:$IMAGE_VERSION
+                            docker pull $DOCKER_HUB_REPO/nodedev:$IMAGE_VERSION
                             docker logout
                         '''
                     }
@@ -23,7 +23,7 @@ pipeline {
 
         stage('Deploy') {
             steps {
-                sh "docker run -d --name nodemain -p 3000:3000 $DOCKER_HUB_REPO/nodemain:$IMAGE_VERSION"
+                sh "docker run -d --name nodedev -p 3001:3000 $DOCKER_HUB_REPO/nodedev:$IMAGE_VERSION"
             }
         }
     }
