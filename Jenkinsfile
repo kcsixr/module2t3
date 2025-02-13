@@ -52,8 +52,8 @@ pipeline {
                     def containerId = sh(script: "docker ps -q -f name=${containerName}", returnStdout: true).trim()
                     if (containerId) {
                        echo "Stopping and removing container ${containerName} with ID ${containerId}"
-                       sh "docker stop ${containerName}"
-                       sh "docker rm ${containerName}"
+                       sh "docker stop ${containerId}"
+                       sh "docker rm ${containerId}"
                     } else {
                         echo "No running container found with name ${containerName}"
                     }
