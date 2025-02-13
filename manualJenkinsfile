@@ -11,7 +11,7 @@ pipeline {
             steps {
                 checkout scm
                 script {
-                    echo "Current Branch: ${env.BRANCH_NAME}"
+                    echo "Current Branch: ${params.ENVIRONMENT}"
                 }
             }
         }
@@ -41,6 +41,25 @@ pipeline {
                 }
             }
         }
+
+        stage('Stop and remove existing container') {
+            steps {
+                script {
+                    // Define containername corresponding to branch
+                    def containerName = (params.ENVIRONMENT == 'main') ? "nodemain" : "nodedev"
+                    echo "Checking if container ${containerName} is running..."
+                    // Check if container exist
+                    def containerId = sh(script: "docker ps -q -f name=${containerName}", returnStdout: true).trim()
+                    if (containerId) {
+                       echo "Stopping and removing container ${containerName} with ID ${containerId}"
+                       sh "docker stop ${containerId}"
+                    } else {
+                        echo "No running container found with name ${containerName}"
+                    }
+                }
+            }
+        }
+
 
         stage('Deploy') {
             steps {
