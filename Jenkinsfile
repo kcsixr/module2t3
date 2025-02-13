@@ -33,10 +33,10 @@ pipeline {
                 script {
                     if (env.BRANCH_NAME == 'main') {
                         echo "Building for main branch"
-                        sh 'docker build -t nodemain:${env.IMAGE_VERSION} .'
+                        sh "docker build -t nodemain:${env.IMAGE_VERSION} ."
                     } else {
                         echo "Building for ${env.BRANCH_NAME} branch"
-                        sh 'docker build -t nodedev:${env.IMAGE_VERSION} .'
+                        sh "'docker build -t nodedev:${env.IMAGE_VERSION} ."
                     }
                 }
             }
@@ -68,10 +68,10 @@ pipeline {
                 script {
                     if (env.BRANCH_NAME == 'main') {
                         echo "Deploying main branch"
-                        sh 'docker run -d --name nodemain --rm -p 3000:3000 nodemain:${env.IMAGE_VERSION}'
+                        sh "docker run -d --name nodemain --rm -p 3000:3000 nodemain:${env.IMAGE_VERSION}"
                     } else {
                         echo "Deploying ${env.BRANCH_NAME} branch"
-                        sh 'docker run -d --name nodedev --rm -p 3001:3000 nodedev:${env.IMAGE_VERSION}'
+                        sh "docker run -d --name nodedev --rm -p 3001:3000 nodedev:${env.IMAGE_VERSION}"
                     }
                 }
             }
