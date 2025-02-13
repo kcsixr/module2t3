@@ -53,7 +53,6 @@ pipeline {
                     if (containerId) {
                        echo "Stopping and removing container ${containerName} with ID ${containerId}"
                        sh "docker stop ${containerId}"
-                       sh "docker rm ${containerId}"
                     } else {
                         echo "No running container found with name ${containerName}"
                     }
