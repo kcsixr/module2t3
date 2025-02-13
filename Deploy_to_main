@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     environment {
-        DOCKER_HUB_REPO = "your-dockerhub-username"
+        DOCKER_HUB_REPO = "your-dockerhub-username" // Замените на ваш Docker Hub username
         IMAGE_VERSION = "1.0"
     }
 
@@ -10,10 +10,12 @@ pipeline {
         stage('Pull Docker Image') {
             steps {
                 script {
-                    withCredentials([usernamePassword(credentialsId: 'd9b0b467-5dde-4656-a824-0711ac8ec427', usernameVariable: 'DOCKER_HUB_USER', passwordVariable: 'DOCKER_HUB_PASSWORD')]) {
-                        sh "echo ${DOCKER_HUB_PASSWORD} | docker login -u ${DOCKER_HUB_USER} --password-stdin"
-                        sh "docker pull ${env.DOCKER_HUB_REPO}/nodemain:${env.IMAGE_VERSION}"
-                        sh "docker logout"
+                    withCredentials([usernamePassword(credentialsId: 'docker-hub-creds', usernameVariable: 'DOCKER_HUB_USER', passwordVariable: 'DOCKER_HUB_PASSWORD')]) {
+                        sh '''
+                            echo $DOCKER_HUB_PASSWORD | docker login -u $DOCKER_HUB_USER --password-stdin
+                            docker pull ${env.DOCKER_HUB_REPO}/nodemain:${env.IMAGE_VERSION}
+                            docker logout
+                        '''
                     }
                 }
             }
