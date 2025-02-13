@@ -3,6 +3,7 @@ pipeline {
 
     environment {
         IMAGE_VERSION = "1.0"
+	DOCKER_HUB_REPO = "kcsixr"
     }
 
     stages {
@@ -33,10 +34,10 @@ pipeline {
                 script {
                     if (env.BRANCH_NAME == 'main') {
                         echo "Building for main branch"
-                        sh "docker build -t nodemain:${env.IMAGE_VERSION} ."
+                        sh "docker build -t ${env.DOCKER_HUB_REPO}/nodemain:${env.IMAGE_VERSION} ."
                     } else {
                         echo "Building for ${env.BRANCH_NAME} branch"
-                        sh "'docker build -t nodedev:${env.IMAGE_VERSION} ."
+                        sh "'docker build -t ${env.DOCKER_HUB_REPO}/nodedev:${env.IMAGE_VERSION} ."
                     }
                 }
             }
@@ -61,19 +62,56 @@ pipeline {
         }
 
 
-
-        stage('Deploy') {
+        stage('Push Docker Image') {
             steps {
                 script {
-                    if (env.BRANCH_NAME == 'main') {
-                        echo "Deploying main branch"
-                        sh "docker run -d --name nodemain --rm -p 3000:3000 nodemain:${env.IMAGE_VERSION}"
-                    } else {
-                        echo "Deploying ${env.BRANCH_NAME} branch"
-                        sh "docker run -d --name nodedev --rm -p 3001:3000 nodedev:${env.IMAGE_VERSION}"
+                    withCredentials([usernamePassword(credentialsId: 'docker-hub-creds', usernameVariable: 'DOCKER_HUB_USER', passwordVariable: 'DOCKER_HUB_PASSWORD')]) {
+                        // Используем переменные, созданные withCredentials
+                        sh '''
+                            echo $DOCKER_HUB_PASSWORD | docker login -u $DOCKER_HUB_USER --password-stdin
+                        '''
+                        if (env.BRANCH_NAME == 'main') {
+                            sh "docker push ${env.DOCKER_HUB_REPO}/nodemain:${env.IMAGE_VERSION}"
+                        } else {
+                            sh "docker push ${env.DOCKER_HUB_REPO}/nodedev:${env.IMAGE_VERSION}"
+                        }
+                        sh "docker logout"
                     }
                 }
             }
         }
+
+// Deploy before
+//        stage('Deploy') {
+//            steps {
+//                script {
+//                    if (env.BRANCH_NAME == 'main') {
+//                        echo "Deploying main branch"
+//                        sh "docker run -d --name nodemain --rm -p 3000:3000 nodemain:${env.IMAGE_VERSION}"
+//                    } else {
+//                        echo "Deploying ${env.BRANCH_NAME} branch"
+//                        sh "docker run -d --name nodedev --rm -p 3001:3000 nodedev:${env.IMAGE_VERSION}"
+//                    }
+//                }
+//            }
+//        }
+
+
+        stage('Trigger Deploy Pipeline') {
+            steps {
+                script {
+                    if (env.BRANCH_NAME == 'main') {
+                        build(job: 'Deploy_to_main', wait: false)
+                    } else {
+                        build(job: 'Deploy_to_dev', wait: false)
+                    }
+                }
+            }
+        }
+
+
     }
 }
+
+
+
