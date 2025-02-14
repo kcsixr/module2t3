@@ -17,6 +17,15 @@ pipeline {
             }
         }
 
+       stage('Lint Dockerfile') {
+            steps {
+                script {
+                    echo "Linting Dockerfile with Hadolint"
+                    sh "hadolint Dockerfile"
+                }
+            }
+        }
+
         stage('Build') {
             steps {
                 sh 'npm install'
