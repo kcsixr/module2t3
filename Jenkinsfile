@@ -43,6 +43,18 @@ pipeline {
             }
         }
 
+        stage('Scan Docker Image for Vulnerabilities') {
+            steps {
+                script {
+                    def imageName = (env.BRANCH_NAME == 'main') ? "${env.DOCKER_HUB_REPO}/nodemain:${env.IMAGE_VERSION}" : "${env.DOCKER_HUB_REPO}/nodedev:${env.IMAGE_VERSION}"
+                    echo "Scanning Docker image: ${imageName}"
+                    def vulnerabilities = sh(script: "trivy image --exit-code 0 --severity HIGH,MEDIUM,LOW --no-progress ${imageName}", returnStdout: true).trim()
+                    echo "Vulnerability Report:\n${vulnerabilities}"
+                }
+            }
+        }
+
+
         stage('Stop and remove existing container') {
             steps {
                 script {
